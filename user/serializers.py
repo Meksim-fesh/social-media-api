@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
+from user.models import UserFollowing
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -71,3 +73,23 @@ class UserRetrieveSerializer(UserSerializer):
             "i_follow",
             "my_followers",
         )
+
+
+class UserFollowersListSerializer(serializers.ModelSerializer):
+    user = serializers.SlugRelatedField(slug_field="username", read_only=True)
+
+    class Meta:
+        model = UserFollowing
+        fields = ("user", )
+
+
+class UserFollowingListSerializer(serializers.ModelSerializer):
+    user = serializers.SlugRelatedField(
+        source="following_user",
+        slug_field="username",
+        read_only=True
+    )
+
+    class Meta:
+        model = UserFollowing
+        fields = ("user", )
