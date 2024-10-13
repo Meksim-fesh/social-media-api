@@ -25,4 +25,12 @@ class UserListView(generics.ListAPIView):
     serializer_class = serializers.UserListSerializer
     permission_classes = (IsAuthenticated,)
     authentication_classes = (JWTAuthentication,)
-    queryset = get_user_model().objects.all()
+
+    def get_queryset(self):
+        queryset = get_user_model().objects.all()
+
+        username = self.request.query_params.get("username")
+        if username:
+            queryset = queryset.filter(username__icontains=username)
+
+        return queryset
