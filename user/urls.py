@@ -21,6 +21,16 @@ urlpatterns = [
         views.UserRetrieveView.as_view(),
         name="user-detail"
     ),
+    path(
+        "profile/<int:pk>/followers/",
+        views.RetrieveUserFollowersView.as_view(),
+        name="followers-list"
+    ),
+    path(
+        "profile/<int:pk>/following/",
+        views.RetrieveUserFollowingsView.as_view(),
+        name="following-list"
+    ),
 ]
 
 app_name = "user"
