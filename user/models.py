@@ -57,7 +57,11 @@ class User(AbstractUser):
 
     username_validator = UnicodeUsernameValidator()
 
-    picture = models.ImageField(null=True, upload_to=user_picture_file_path)
+    picture = models.ImageField(
+        blank=True,
+        null=True,
+        upload_to=user_picture_file_path
+    )
     bio = models.TextField(blank=True)
     username = models.CharField(
         _("username"),
