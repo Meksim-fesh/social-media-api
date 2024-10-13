@@ -54,3 +54,20 @@ class UserListSerializer(UserSerializer):
     class Meta:
         model = get_user_model()
         fields = ("username", "first_name", "last_name",)
+
+
+class UserRetrieveSerializer(UserSerializer):
+    i_follow = serializers.IntegerField(read_only=True)
+    my_followers = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = get_user_model()
+        fields = (
+            "picture",
+            "username",
+            "first_name",
+            "last_name",
+            "bio",
+            "i_follow",
+            "my_followers",
+        )

@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Count
 
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -34,3 +35,17 @@ class UserListView(generics.ListAPIView):
             queryset = queryset.filter(username__icontains=username)
 
         return queryset
+
+
+class UserRetrieveView(generics.RetrieveAPIView):
+    serializer_class = serializers.UserRetrieveSerializer
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (JWTAuthentication,)
+    queryset = get_user_model().objects.annotate(
+        i_follow=(
+            Count("following")
+        ),
+        my_followers=(
+            Count("followers")
+        ),
+    )
