@@ -5,8 +5,7 @@ from rest_framework import serializers
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
-        fields = ("id", "email", "password", "is_staff")
-        read_only_fields = ("is_staff",)
+        fields = ("id", "email", "password",)
         extra_kwargs = {
             "password": {
                 "write_only": True,
@@ -30,3 +29,22 @@ class UserSerializer(serializers.ModelSerializer):
             user.save()
 
         return user
+
+
+class UserRetrieveMyselfSerializer(UserSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = (
+            "picture",
+            "username",
+            "first_name",
+            "last_name",
+            "bio",
+            "email",
+            "is_staff",
+            "date_joined",
+        )
+        read_only_fields = (
+            "is_staff",
+            "date_joined",
+        )
