@@ -4,6 +4,7 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
 
 from rest_framework import generics
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import Response
@@ -82,15 +83,28 @@ class ToggleUserFollowView(generics.GenericAPIView):
         )
 
 
+class FollowPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
 class RetrieveUserFollowersView(generics.GenericAPIView):
     serializer_class = serializers.UserFollowersListSerializer
     permission_classes = (IsAuthenticated,)
     authentication_classes = (JWTAuthentication,)
     queryset = get_user_model().objects.prefetch_related("followers__user")
+    pagination_class = FollowPagination
 
     def get(self, request, *args, **kwargs):
-        instance = self.get_object().followers.all()
-        serializer = self.get_serializer(instance, many=True)
+        queryset = self.get_object().followers.all()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
 
@@ -101,8 +115,15 @@ class RetrieveUserFollowingsView(generics.GenericAPIView):
     queryset = get_user_model().objects.prefetch_related(
         "following__following_user"
     )
+    pagination_class = FollowPagination
 
     def get(self, request, *args, **kwargs):
-        instance = self.get_object().following.all()
-        serializer = self.get_serializer(instance, many=True)
+        queryset = self.get_object().following.all()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
