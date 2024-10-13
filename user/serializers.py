@@ -48,3 +48,9 @@ class UserRetrieveMyselfSerializer(UserSerializer):
             "is_staff",
             "date_joined",
         )
+
+
+class UserListSerializer(UserSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = ("username", "first_name", "last_name",)
