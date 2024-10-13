@@ -31,6 +31,11 @@ urlpatterns = [
         views.RetrieveUserFollowingsView.as_view(),
         name="following-list"
     ),
+    path(
+        "profile/<int:pk>/toggle-follow/",
+        views.ToggleUserFollowView.as_view(),
+        name="toggle-follow"
+    ),
 ]
 
 app_name = "user"

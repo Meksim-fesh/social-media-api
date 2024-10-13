@@ -1,5 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Count
+from django.http import HttpResponseRedirect
+from django.urls import reverse_lazy
 
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -7,6 +9,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import Response
 
 from user import serializers
+from user.models import UserFollowing
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -50,6 +53,33 @@ class UserRetrieveView(generics.RetrieveAPIView):
             Count("followers")
         ),
     )
+
+
+class ToggleUserFollowView(generics.GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (JWTAuthentication,)
+    queryset = get_user_model().objects.all()
+    serializer_class = serializers.UserFollowingSerializer
+
+    def post(self, request, *args, **kwargs):
+        user = self.request.user
+        following_user = self.get_object()
+
+        try:
+            follow = UserFollowing.objects.get(
+                user=user,
+                following_user=following_user
+            )
+            follow.delete()
+        except UserFollowing.DoesNotExist:
+            UserFollowing.objects.create(
+                user=user,
+                following_user=following_user
+            )
+
+        return HttpResponseRedirect(
+            reverse_lazy("user:user-detail", args=[following_user.id])
+        )
 
 
 class RetrieveUserFollowersView(generics.GenericAPIView):

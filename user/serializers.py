@@ -93,3 +93,9 @@ class UserFollowingListSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserFollowing
         fields = ("user", )
+
+
+class UserFollowingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserFollowing
+        fields = []
