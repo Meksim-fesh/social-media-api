@@ -34,6 +34,15 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class UserRetrieveMyselfSerializer(UserSerializer):
+    i_follow = serializers.IntegerField(
+        source="following.count",
+        read_only=True
+    )
+    my_followers = serializers.IntegerField(
+        source="followers.count",
+        read_only=True
+    )
+
     class Meta:
         model = get_user_model()
         fields = (
@@ -43,12 +52,16 @@ class UserRetrieveMyselfSerializer(UserSerializer):
             "last_name",
             "bio",
             "email",
+            "i_follow",
+            "my_followers",
             "is_staff",
             "date_joined",
         )
         read_only_fields = (
             "is_staff",
             "date_joined",
+            "i_follow",
+            "my_followers",
         )
 
 
