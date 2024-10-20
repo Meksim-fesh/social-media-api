@@ -32,12 +32,37 @@ class UserListView(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     authentication_classes = (JWTAuthentication,)
 
+    def _filter_by_username(self, queryset):
+        username = self.request.query_params.get("username")
+
+        if username:
+            queryset = queryset.filter(username__icontains=username)
+
+        return queryset
+
+    def _filter_by_names(self, queryset):
+        first_name = self.request.query_params.get("first_name")
+        last_name = self.request.query_params.get("last_name")
+
+        if first_name:
+            queryset = queryset.filter(first_name__icontains=first_name)
+
+        if last_name:
+            queryset = queryset.filter(last_name__icontains=last_name)
+
+        return queryset
+
+    def filter_by_query_params(self, queryset):
+
+        queryset = self._filter_by_username(queryset)
+        queryset = self._filter_by_names(queryset)
+
+        return queryset.distinct()
+
     def get_queryset(self):
         queryset = get_user_model().objects.all()
 
-        username = self.request.query_params.get("username")
-        if username:
-            queryset = queryset.filter(username__icontains=username)
+        queryset = self.filter_by_query_params(queryset)
 
         return queryset
 
