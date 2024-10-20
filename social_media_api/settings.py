@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "debug_toolbar",
+    "rest_framework_simplejwt.token_blacklist",
 ]
 
 MIDDLEWARE = [

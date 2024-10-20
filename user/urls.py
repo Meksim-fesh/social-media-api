@@ -4,6 +4,7 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
     TokenVerifyView,
+    TokenBlacklistView,
 )
 
 from user import views
@@ -46,6 +47,7 @@ urlpatterns = [
         views.RetrieveMyFollowing.as_view(),
         name="my-followings"
     ),
+    path("logout/", TokenBlacklistView.as_view(), name="logout"),
 ]
 
 app_name = "user"
