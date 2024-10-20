@@ -16,24 +16,24 @@ urlpatterns = [
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
     path("me/", views.ManageUserView.as_view(), name="manage"),
-    path("all/", views.UserListView.as_view(), name="user-list"),
+    path("profiles/", views.UserListView.as_view(), name="user-list"),
     path(
-        "profile/<int:pk>/",
+        "profiles/<int:pk>/",
         views.UserRetrieveView.as_view(),
         name="user-detail"
     ),
     path(
-        "profile/<int:pk>/followers/",
+        "profiles/<int:pk>/followers/",
         views.RetrieveUserFollowersView.as_view(),
         name="followers-list"
     ),
     path(
-        "profile/<int:pk>/following/",
+        "profiles/<int:pk>/following/",
         views.RetrieveUserFollowingsView.as_view(),
         name="following-list"
     ),
     path(
-        "profile/<int:pk>/toggle-follow/",
+        "profiles/<int:pk>/toggle-follow/",
         views.ToggleUserFollowView.as_view(),
         name="toggle-follow"
     ),
