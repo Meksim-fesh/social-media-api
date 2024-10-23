@@ -1,5 +1,4 @@
 from rest_framework import generics
-from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -16,11 +15,12 @@ from post.serializers import (
     PostSerializer,
     ToggleLikeSerializer
 )
+from post.permissions import IsOwnerOrReadOnly
 
 
 class PostViewSet(ModelViewSet):
     authentication_classes = (JWTAuthentication, )
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsOwnerOrReadOnly)
     queryset = Post.objects.select_related("user")
 
     def _filter_queryset_by_hashtag(self, queryset):
