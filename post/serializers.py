@@ -15,14 +15,6 @@ class CommentListSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
-    user = serializers.SlugRelatedField(
-        slug_field="username",
-        read_only=True,
-    )
-    amount_of_likes = serializers.IntegerField(
-        read_only=True,
-    )
-
     class Meta:
         model = Post
         fields = (
@@ -32,12 +24,18 @@ class PostSerializer(serializers.ModelSerializer):
             "hashtag",
             "user",
             "created_at",
-            "amount_of_likes",
         )
 
 
 class PostListSerializer(PostSerializer):
+    user = serializers.SlugRelatedField(
+        slug_field="username",
+        read_only=True,
+    )
     amount_of_comments = serializers.IntegerField(
+        read_only=True,
+    )
+    amount_of_likes = serializers.IntegerField(
         read_only=True,
     )
 
@@ -59,6 +57,9 @@ class PostRetrieveSerializer(PostSerializer):
     comments = CommentListSerializer(many=True, read_only=True)
     user = serializers.SlugRelatedField(
         slug_field="username",
+        read_only=True,
+    )
+    amount_of_likes = serializers.IntegerField(
         read_only=True,
     )
 
@@ -83,3 +84,9 @@ class LikeListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
         fields = ("user",)
+
+
+class ToggleLikeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Like
+        fields = []

@@ -1,21 +1,29 @@
-from rest_framework import generics
+from rest_framework import generics, mixins
+from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from django.db.models import Count, Q
+from django.http import HttpResponseRedirect
+from django.urls import reverse_lazy
 
 from post.models import Like, Post
 from post.serializers import (
     LikeListSerializer,
     PostListSerializer,
-    PostRetrieveSerializer
+    PostRetrieveSerializer,
+    PostSerializer,
+    ToggleLikeSerializer
 )
 
 
-class PostListView(generics.ListAPIView):
-    serializer_class = PostListSerializer
+class PostViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    GenericViewSet
+):
     authentication_classes = (JWTAuthentication, )
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
     queryset = Post.objects.select_related("user")
 
     def _filter_queryset_by_hashtag(self, queryset):
@@ -42,41 +50,39 @@ class PostListView(generics.ListAPIView):
 
         return queryset.distinct()
 
-    def get_queryset(self):
-        queryset = self.queryset
+    def get_serializer_class(self):
 
-        queryset = self.filter_queryset_by_params(queryset)
+        if self.action == "list":
+            return PostListSerializer
 
-        queryset = queryset.annotate(
-            amount_of_comments=(
-                Count("comments")
-            ),
-            amount_of_likes=(
-                Count("likes")
-            ),
-        )
+        if self.action == "retrieve":
+            return PostRetrieveSerializer
 
-        return queryset
-
-
-class PostRetrieveView(generics.RetrieveAPIView):
-    serializer_class = PostRetrieveSerializer
-    authentication_classes = (JWTAuthentication, )
-    permission_classes = (IsAuthenticated, )
-    queryset = Post.objects.select_related("user").prefetch_related(
-        "comments__user"
-    )
+        return PostSerializer
 
     def get_queryset(self):
         queryset = self.queryset
 
-        queryset = queryset.annotate(
-            amount_of_likes=(
-                Count("likes")
-            ),
-        )
+        if self.action == "list":
+            queryset = self.filter_queryset_by_params(queryset)
+            queryset = queryset.annotate(
+                amount_of_comments=(
+                    Count("comments")
+                ),
+                amount_of_likes=(
+                    Count("likes")
+                ),
+            )
+            return queryset
 
-        return queryset
+        if self.action == "retrieve":
+            queryset = self.queryset.prefetch_related("comments__user")
+            queryset = queryset.annotate(
+                amount_of_likes=(
+                    Count("likes")
+                ),
+            )
+            return queryset
 
 
 class LikeListView(generics.ListAPIView):
@@ -84,3 +90,31 @@ class LikeListView(generics.ListAPIView):
     authentication_classes = (JWTAuthentication, )
     permission_classes = (IsAuthenticated, )
     queryset = Like.objects.select_related("user")
+
+
+class ToggleLikeView(generics.GenericAPIView):
+    serializer_class = ToggleLikeSerializer
+    authentication_classes = (JWTAuthentication, )
+    permission_classes = (IsAuthenticated, )
+    queryset = Post.objects.all()
+
+    def post(self, request, *args, **kwargs):
+
+        user = self.request.user
+        post = self.get_object()
+
+        try:
+            like = Like.objects.get(
+                post=post,
+                user=user,
+            )
+            like.delete()
+        except Like.DoesNotExist:
+            Like.objects.create(
+                user=user,
+                post=post,
+            )
+
+        return HttpResponseRedirect(
+            reverse_lazy("post:post-detail", args=[post.id])
+        )
