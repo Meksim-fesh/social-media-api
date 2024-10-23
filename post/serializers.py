@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from post.models import Comment, Post
+from post.models import Comment, Like, Post
 
 
 class CommentListSerializer(serializers.ModelSerializer):
@@ -73,3 +73,13 @@ class PostRetrieveSerializer(PostSerializer):
             "amount_of_likes",
             "comments",
         )
+
+
+class LikeListSerializer(serializers.ModelSerializer):
+    user = serializers.SlugRelatedField(
+        slug_field="username", read_only=True
+    )
+
+    class Meta:
+        model = Like
+        fields = ("user",)

@@ -4,8 +4,12 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from django.db.models import Count, Q
 
-from post.models import Post
-from post.serializers import PostListSerializer, PostRetrieveSerializer
+from post.models import Like, Post
+from post.serializers import (
+    LikeListSerializer,
+    PostListSerializer,
+    PostRetrieveSerializer
+)
 
 
 class PostListView(generics.ListAPIView):
@@ -73,3 +77,10 @@ class PostRetrieveView(generics.RetrieveAPIView):
         )
 
         return queryset
+
+
+class LikeListView(generics.ListAPIView):
+    serializer_class = LikeListSerializer
+    authentication_classes = (JWTAuthentication, )
+    permission_classes = (IsAuthenticated, )
+    queryset = Like.objects.select_related("user")
