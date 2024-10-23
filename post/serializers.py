@@ -22,7 +22,6 @@ class PostSerializer(serializers.ModelSerializer):
             "file",
             "text",
             "hashtag",
-            "user",
             "created_at",
         )
 

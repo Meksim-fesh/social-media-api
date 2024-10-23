@@ -1,5 +1,6 @@
-from rest_framework import generics, mixins
-from rest_framework.viewsets import GenericViewSet
+from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
@@ -17,11 +18,7 @@ from post.serializers import (
 )
 
 
-class PostViewSet(
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    GenericViewSet
-):
+class PostViewSet(ModelViewSet):
     authentication_classes = (JWTAuthentication, )
     permission_classes = (IsAuthenticated,)
     queryset = Post.objects.select_related("user")
@@ -83,6 +80,11 @@ class PostViewSet(
                 ),
             )
             return queryset
+
+        return queryset
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 
 class LikeListView(generics.ListAPIView):
