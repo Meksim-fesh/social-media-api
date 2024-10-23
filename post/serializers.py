@@ -4,12 +4,25 @@ from post.models import Comment, Post
 
 
 class CommentListSerializer(serializers.ModelSerializer):
+    user = serializers.SlugRelatedField(
+        slug_field="username",
+        read_only=True,
+    )
+
     class Meta:
         model = Comment
-        fields = ("content", "user",)
+        fields = ("user", "content",)
 
 
-class PostListSerializer(serializers.ModelSerializer):
+class PostSerializer(serializers.ModelSerializer):
+    user = serializers.SlugRelatedField(
+        slug_field="username",
+        read_only=True,
+    )
+    amount_of_likes = serializers.IntegerField(
+        read_only=True,
+    )
+
     class Meta:
         model = Post
         fields = (
@@ -19,11 +32,35 @@ class PostListSerializer(serializers.ModelSerializer):
             "hashtag",
             "user",
             "created_at",
+            "amount_of_likes",
         )
 
 
-class PostRetrieveSerializer(serializers.ModelSerializer):
+class PostListSerializer(PostSerializer):
+    amount_of_comments = serializers.IntegerField(
+        read_only=True,
+    )
+
+    class Meta:
+        model = Post
+        fields = (
+            "id",
+            "file",
+            "text",
+            "hashtag",
+            "user",
+            "created_at",
+            "amount_of_likes",
+            "amount_of_comments",
+        )
+
+
+class PostRetrieveSerializer(PostSerializer):
     comments = CommentListSerializer(many=True, read_only=True)
+    user = serializers.SlugRelatedField(
+        slug_field="username",
+        read_only=True,
+    )
 
     class Meta:
         model = Post
@@ -33,5 +70,6 @@ class PostRetrieveSerializer(serializers.ModelSerializer):
             "hashtag",
             "user",
             "created_at",
+            "amount_of_likes",
             "comments",
         )
