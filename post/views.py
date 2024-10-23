@@ -1,5 +1,5 @@
-from rest_framework import generics
-from rest_framework.viewsets import ModelViewSet
+from rest_framework import generics, mixins
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
@@ -7,8 +7,10 @@ from django.db.models import Count, Q
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
 
-from post.models import Like, Post
+from post.models import Comment, Like, Post
 from post.serializers import (
+    CommentCreateSerializer,
+    CommentRetrieveUpdateDeleteSerializer,
     LikeListSerializer,
     PostListSerializer,
     PostRetrieveSerializer,
@@ -20,7 +22,7 @@ from post.permissions import IsOwnerOrReadOnly
 
 class PostViewSet(ModelViewSet):
     authentication_classes = (JWTAuthentication, )
-    permission_classes = (IsAuthenticated, IsOwnerOrReadOnly)
+    permission_classes = (IsOwnerOrReadOnly, )
     queryset = Post.objects.select_related("user")
 
     def _filter_queryset_by_hashtag(self, queryset):
@@ -120,3 +122,43 @@ class ToggleLikeView(generics.GenericAPIView):
         return HttpResponseRedirect(
             reverse_lazy("post:post-detail", args=[post.id])
         )
+
+
+class CommentCreateView(generics.GenericAPIView):
+    serializer_class = CommentCreateSerializer
+    authentication_classes = (JWTAuthentication, )
+    permission_classes = (IsOwnerOrReadOnly, )
+    queryset = Post.objects.all()
+
+    def post(self, request, *args, **kwargs):
+
+        post = self.get_object()
+        user = self.request.user
+
+        serializer = CommentCreateSerializer(
+            data=request.data,
+            context={
+                "request": request,
+                "user": user,
+                "post": post,
+            }
+        )
+
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return HttpResponseRedirect(
+            reverse_lazy("post:post-detail", args=[post.id])
+        )
+
+
+class CommentViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    GenericViewSet
+):
+    serializer_class = CommentRetrieveUpdateDeleteSerializer
+    authentication_classes = (JWTAuthentication, )
+    permission_classes = (IsOwnerOrReadOnly, )
+    queryset = Comment.objects.all()

@@ -7,8 +7,10 @@ from post import views
 
 router = routers.DefaultRouter()
 router.register("posts", views.PostViewSet)
+router.register("comments", views.CommentViewSet)
 
 urlpatterns = [
+    path("", include(router.urls)),
     path(
         "posts/<int:pk>/likes/",
         views.LikeListView.as_view(),
@@ -19,7 +21,11 @@ urlpatterns = [
         views.ToggleLikeView.as_view(),
         name="like-toggle"
     ),
-    path("", include(router.urls)),
+    path(
+        "posts/<int:pk>/add-comment/",
+        views.CommentCreateView.as_view(),
+        name="comment-create"
+    ),
 ]
 
 app_name = "post"

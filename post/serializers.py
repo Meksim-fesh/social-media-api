@@ -3,7 +3,30 @@ from rest_framework import serializers
 from post.models import Comment, Like, Post
 
 
-class CommentListSerializer(serializers.ModelSerializer):
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ("id", "user", "content", "post")
+
+
+class CommentCreateSerializer(CommentSerializer):
+    class Meta:
+        model = Comment
+        fields = ("content", )
+
+    def create(self, validated_data):
+
+        post = self.context["post"]
+        user = self.context["user"]
+
+        validated_data["user"] = user
+        validated_data["post"] = post
+
+        data = super().create(validated_data)
+        return data
+
+
+class CommentListSerializer(CommentSerializer):
     user = serializers.SlugRelatedField(
         slug_field="username",
         read_only=True,
@@ -11,7 +34,13 @@ class CommentListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ("user", "content",)
+        fields = ("id", "user", "content",)
+
+
+class CommentRetrieveUpdateDeleteSerializer(CommentSerializer):
+    class Meta:
+        model = Comment
+        fields = ("content", )
 
 
 class PostSerializer(serializers.ModelSerializer):
