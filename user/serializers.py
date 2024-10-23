@@ -113,13 +113,19 @@ class UserFollowingSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         data = super(UserFollowingSerializer, self).validate(attrs)
 
-        if attrs["user"] == attrs["following_user"]:
+        user = self.context["user"]
+        following_user = self.context["following_user"]
+
+        if user == following_user:
             raise serializers.ValidationError(
                 "user and following_user should be different"
             )
+
+        data["user"] = user
+        data["following_user"] = following_user
 
         return data
 
     class Meta:
         model = UserFollowing
-        fields = ["user", "following_user"]
+        fields = []

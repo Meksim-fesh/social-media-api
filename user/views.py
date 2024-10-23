@@ -89,10 +89,8 @@ class ToggleUserFollowView(generics.GenericAPIView):
 
     def post(self, request, *args, **kwargs):
 
-        user = get_user_model().objects.get(pk=request.data["user"])
-        following_user = get_user_model().objects.get(
-            pk=request.data["following_user"]
-        )
+        user = self.request.user
+        following_user = self.get_object()
 
         try:
             follow = UserFollowing.objects.get(
@@ -101,7 +99,14 @@ class ToggleUserFollowView(generics.GenericAPIView):
             )
             follow.delete()
         except UserFollowing.DoesNotExist:
-            serializer = serializers.UserFollowingSerializer(data=request.data)
+            serializer = serializers.UserFollowingSerializer(
+                data=request.data,
+                context={
+                    "request": request,
+                    "user": user,
+                    "following_user": following_user,
+                }
+            )
             serializer.is_valid(raise_exception=True)
             serializer.save()
 
