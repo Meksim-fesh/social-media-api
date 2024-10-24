@@ -10,7 +10,7 @@ router.register("posts", views.PostViewSet)
 router.register("comments", views.CommentViewSet)
 
 urlpatterns = [
-    path("", include(router.urls)),
+    path("posts/i-liked/", views.LikedPostView.as_view(), name="post-liked"),
     path(
         "posts/<int:pk>/likes/",
         views.LikeListView.as_view(),
@@ -26,6 +26,7 @@ urlpatterns = [
         views.CommentCreateView.as_view(),
         name="comment-create"
     ),
+    path("", include(router.urls)),
 ]
 
 app_name = "post"

@@ -89,6 +89,29 @@ class PostViewSet(ModelViewSet):
         serializer.save(user=self.request.user)
 
 
+class LikedPostView(generics.ListAPIView):
+    serializer_class = PostListSerializer
+    permission_classes = (IsAuthenticated, )
+    authentication_classes = (JWTAuthentication, )
+    queryset = Post.objects.select_related("user")
+
+    def get_queryset(self):
+        queryset = self.queryset
+        user = self.request.user
+
+        queryset = queryset.annotate(
+            amount_of_comments=(
+                Count("comments")
+            ),
+            amount_of_likes=(
+                Count("likes")
+            ),
+        )
+        queryset = queryset.filter(likes__user=user)
+
+        return queryset
+
+
 class LikeListView(generics.ListAPIView):
     serializer_class = LikeListSerializer
     authentication_classes = (JWTAuthentication, )
