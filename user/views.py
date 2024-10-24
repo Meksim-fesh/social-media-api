@@ -73,10 +73,10 @@ class UserRetrieveView(generics.RetrieveAPIView):
     authentication_classes = (JWTAuthentication,)
     queryset = get_user_model().objects.annotate(
         i_follow=(
-            Count("following")
+            Count("following", distinct=True)
         ),
         my_followers=(
-            Count("followers")
+            Count("followers", distinct=True)
         ),
     )
 

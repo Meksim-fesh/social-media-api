@@ -66,10 +66,10 @@ class PostViewSet(ModelViewSet):
             queryset = self.filter_queryset_by_params(queryset)
             queryset = queryset.annotate(
                 amount_of_comments=(
-                    Count("comments")
+                    Count("comments", distinct=True)
                 ),
                 amount_of_likes=(
-                    Count("likes")
+                    Count("likes", distinct=True)
                 ),
             )
             return queryset
@@ -78,7 +78,7 @@ class PostViewSet(ModelViewSet):
             queryset = self.queryset.prefetch_related("comments__user")
             queryset = queryset.annotate(
                 amount_of_likes=(
-                    Count("likes")
+                    Count("likes", distinct=True)
                 ),
             )
             return queryset
@@ -101,10 +101,10 @@ class LikedPostView(generics.ListAPIView):
 
         queryset = queryset.annotate(
             amount_of_comments=(
-                Count("comments")
+                Count("comments", distinct=True)
             ),
             amount_of_likes=(
-                Count("likes")
+                Count("likes", distinct=True)
             ),
         )
         queryset = queryset.filter(likes__user=user)
