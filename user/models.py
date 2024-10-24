@@ -71,7 +71,7 @@ class User(AbstractUser):
         error_messages={
             "unique": _("A user with that username already exists."),
         },
-        default=f"user-{uuid.uuid1()}"
+        default="default-username"
     )
     email = models.EmailField(_("email address"), unique=True)
 
