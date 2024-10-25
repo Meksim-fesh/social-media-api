@@ -1,6 +1,8 @@
 import os
 import uuid
 
+from datetime import datetime
+
 from django.db import models
 from django.utils.text import slugify
 
@@ -24,9 +26,15 @@ class Post(models.Model):
         on_delete=models.CASCADE,
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    is_published = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Post by {self.user}"
+
+    def publish(self):
+        self.is_published = True
+        self.created_at = datetime.now()
+        self.save()
 
 
 class Like(models.Model):
