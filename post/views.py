@@ -91,7 +91,13 @@ class PostViewSet(ModelViewSet):
         return queryset
 
     def create(self, request, *args, **kwargs):
-
+        """
+        Creates an instance of Post model.
+        If scheduled_time is not provided, then the post creates imediately.
+        If scheduled_time is provided,
+        then the post creates at provided scheduled_time.
+        (Uses celery+redis)
+        """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -118,6 +124,35 @@ class PostViewSet(ModelViewSet):
     def perform_create(self, serializer):
         return serializer.save(user=self.request.user)
 
+    def list(self, request, *args, **kwargs):
+        """Returns list of Post models"""
+        return super().list(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        """Returns a single instance of Comment model"""
+        return super().retrieve(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        """
+        Endpoint for updating a single instance of Post model
+        (ONLY own posts) (requires all fields to be provided)
+        """
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        """
+        Endpoint for updating a single instance of Post model
+        (ONLY own posts) (does not require all fields to be provided)
+        """
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        Endpoint for deleting a single instance of Post model
+        (ONLY own posts)
+        """
+        return super().destroy(request, *args, **kwargs)
+
 
 class LikedPostView(generics.ListAPIView):
     serializer_class = PostListSerializer
@@ -141,12 +176,20 @@ class LikedPostView(generics.ListAPIView):
 
         return queryset
 
+    def get(self, request, *args, **kwargs):
+        """Returns list of posts liked by currently authenticated user"""
+        return super().get(request, *args, **kwargs)
+
 
 class LikeListView(generics.ListAPIView):
     serializer_class = LikeListSerializer
     authentication_classes = (JWTAuthentication, )
     permission_classes = (IsAuthenticated, )
     queryset = Like.objects.select_related("user")
+
+    def get(self, request, *args, **kwargs):
+        """Returns list of user who liked the post"""
+        return super().get(request, *args, **kwargs)
 
 
 class ToggleLikeView(generics.GenericAPIView):
@@ -156,7 +199,12 @@ class ToggleLikeView(generics.GenericAPIView):
     queryset = Post.objects.all()
 
     def post(self, request, *args, **kwargs):
-
+        """
+        Creates an instance of Like model to a specific post (like system).
+        Second call for the same post deletes the instance (unlike system).
+        Redirects to the post detail page.
+        (post and user are defined at the view/backend level)
+        """
         user = self.request.user
         post = self.get_object()
 
@@ -184,7 +232,11 @@ class CommentCreateView(generics.GenericAPIView):
     queryset = Post.objects.all()
 
     def post(self, request, *args, **kwargs):
-
+        """
+        Creates an instance of Comment model to a specific post
+        and redirects to the post detail page
+        (post and user are defined at the view/backend level)
+        """
         post = self.get_object()
         user = self.request.user
 
@@ -215,3 +267,28 @@ class CommentViewSet(
     authentication_classes = (JWTAuthentication, )
     permission_classes = (IsOwnerOrReadOnly, )
     queryset = Comment.objects.all()
+
+    def retrieve(self, request, *args, **kwargs):
+        """Returns a single instance of Comment model"""
+        return super().retrieve(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        """
+        Endpoint for updating a single instance of Comment model
+        (ONLY own comments) (requires all fields to be provided)
+        """
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        """
+        Endpoint for updating a single instance of Comment model
+        (ONLY own comments) (does not require all fields to be provided)
+        """
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        Endpoint for deleting a single instance of Comment model
+        (ONLY own comments)
+        """
+        return super().destroy(request, *args, **kwargs)

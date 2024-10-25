@@ -17,6 +17,10 @@ class CreateUserView(generics.CreateAPIView):
     serializer_class = serializers.UserSerializer
     permission_classes = (AllowAny,)
 
+    def post(self, request, *args, **kwargs):
+        """Registers a new usual user with email and password"""
+        return super().post(request, *args, **kwargs)
+
 
 class ManageUserView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.UserRetrieveMyselfSerializer
@@ -25,6 +29,28 @@ class ManageUserView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_object(self):
         return self.request.user
+
+    def get(self, request, *args, **kwargs):
+        """Returns detail info about an authenticated user"""
+        return super().get(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        """
+        Endpoint for updating an authenticated user
+        (requires all fields to be provided)
+        """
+        return super().put(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        """
+        Endpoint for updating an authenticated user
+        (does not require all fields to be provided)
+        """
+        return super().patch(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        """Endpoint for deleting an authenticated user"""
+        return super().delete(request, *args, **kwargs)
 
 
 class UserListView(generics.ListAPIView):
@@ -66,6 +92,10 @@ class UserListView(generics.ListAPIView):
 
         return queryset
 
+    def get(self, request, *args, **kwargs):
+        """Return list of all the registered users"""
+        return super().get(request, *args, **kwargs)
+
 
 class UserRetrieveView(generics.RetrieveAPIView):
     serializer_class = serializers.UserRetrieveSerializer
@@ -80,6 +110,10 @@ class UserRetrieveView(generics.RetrieveAPIView):
         ),
     )
 
+    def get(self, request, *args, **kwargs):
+        """Returns detail info about a specific user"""
+        return super().get(request, *args, **kwargs)
+
 
 class ToggleUserFollowView(generics.GenericAPIView):
     permission_classes = (IsAuthenticated,)
@@ -88,7 +122,13 @@ class ToggleUserFollowView(generics.GenericAPIView):
     serializer_class = serializers.UserFollowingSerializer
 
     def post(self, request, *args, **kwargs):
-
+        """
+        Creates an instance of UserFollowing model
+        for a specific user (follow system).
+        Second call for the same user deletes the instance (unfollow system).
+        Redirects to the user detail page.
+        (following_user and user are defined at the view/backend level)
+        """
         user = self.request.user
         following_user = self.get_object()
 
@@ -129,6 +169,7 @@ class RetrieveUserFollowersView(generics.GenericAPIView):
     pagination_class = FollowPagination
 
     def get(self, request, *args, **kwargs):
+        """Returns list of users following a specific user"""
         queryset = self.get_object().followers.all()
 
         page = self.paginate_queryset(queryset)
@@ -150,6 +191,7 @@ class RetrieveUserFollowingsView(generics.GenericAPIView):
     pagination_class = FollowPagination
 
     def get(self, request, *args, **kwargs):
+        """Returns list of users followed by a specific user"""
         queryset = self.get_object().following.all()
 
         page = self.paginate_queryset(queryset)
@@ -166,6 +208,10 @@ class RetrieveMyFollowers(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication,)
 
     def get(self, request, *args, **kwargs):
+        """
+        Redirects to /profile/<int:pk>/followers/ endpoint
+        for an authenticated user
+        """
         return HttpResponseRedirect(
             reverse_lazy(
                 "user:followers-list",
@@ -179,6 +225,10 @@ class RetrieveMyFollowing(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication,)
 
     def get(self, request, *args, **kwargs):
+        """
+        Redirects to /profile/<int:pk>/following/ endpoint
+        for an authenticated user
+        """
         return HttpResponseRedirect(
             reverse_lazy(
                 "user:following-list",
