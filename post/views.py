@@ -1,4 +1,5 @@
-from rest_framework import generics, mixins
+from rest_framework import generics, mixins, status
+from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -6,6 +7,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.db.models import Count, Q
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
+from django.utils import timezone
 
 from post.models import Comment, Like, Post
 from post.serializers import (
@@ -18,6 +20,8 @@ from post.serializers import (
     ToggleLikeSerializer
 )
 from post.permissions import IsOwnerOrReadOnly
+
+from post.tasks import create_scheduled_post
 
 
 class PostViewSet(ModelViewSet):
@@ -46,6 +50,7 @@ class PostViewSet(ModelViewSet):
     def filter_queryset_by_params(self, queryset):
         queryset = self._filter_queryset_by_user(queryset)
         queryset = self._filter_queryset_by_hashtag(queryset)
+        queryset = queryset.filter(is_published=True)
 
         return queryset.distinct()
 
@@ -85,8 +90,33 @@ class PostViewSet(ModelViewSet):
 
         return queryset
 
+    def create(self, request, *args, **kwargs):
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        scheduled_time = serializer.validated_data.pop("scheduled_time", None)
+
+        post = self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+
+        if scheduled_time and scheduled_time > timezone.now():
+            create_scheduled_post.apply_async(
+                args=[post.id],
+                eta=scheduled_time,
+            )
+            return Response(status=status.HTTP_200_OK)
+
+        else:
+            post.publish()
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED,
+                headers=headers
+            )
+
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        return serializer.save(user=self.request.user)
 
 
 class LikedPostView(generics.ListAPIView):

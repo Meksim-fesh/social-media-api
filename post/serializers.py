@@ -44,6 +44,8 @@ class CommentRetrieveUpdateDeleteSerializer(CommentSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
+    scheduled_time = serializers.DateTimeField(required=False)
+
     class Meta:
         model = Post
         fields = (
@@ -52,6 +54,7 @@ class PostSerializer(serializers.ModelSerializer):
             "text",
             "hashtag",
             "created_at",
+            "scheduled_time",
         )
 
 
