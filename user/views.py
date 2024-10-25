@@ -3,7 +3,7 @@ from django.db.models import Count
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
 
-from rest_framework import generics, views
+from rest_framework import generics
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -161,7 +161,10 @@ class RetrieveUserFollowingsView(generics.GenericAPIView):
         return Response(serializer.data)
 
 
-class RetrieveMyFollowers(views.APIView):
+class RetrieveMyFollowers(generics.GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (JWTAuthentication,)
+
     def get(self, request, *args, **kwargs):
         return HttpResponseRedirect(
             reverse_lazy(
@@ -171,7 +174,10 @@ class RetrieveMyFollowers(views.APIView):
         )
 
 
-class RetrieveMyFollowing(views.APIView):
+class RetrieveMyFollowing(generics.GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (JWTAuthentication,)
+
     def get(self, request, *args, **kwargs):
         return HttpResponseRedirect(
             reverse_lazy(
