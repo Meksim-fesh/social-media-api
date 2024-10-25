@@ -9,6 +9,9 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.utils import timezone
 
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
+
 from post.models import Comment, Like, Post
 from post.serializers import (
     CommentCreateSerializer,
@@ -124,6 +127,16 @@ class PostViewSet(ModelViewSet):
     def perform_create(self, serializer):
         return serializer.save(user=self.request.user)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="hashtag",
+                description="Filter posts by hashtag",
+                required=False,
+                type=OpenApiTypes.STR,
+            )
+        ]
+    )
     def list(self, request, *args, **kwargs):
         """Returns list of Post models"""
         return super().list(request, *args, **kwargs)

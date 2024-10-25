@@ -9,6 +9,9 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import Response
 
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
+
 from user import serializers
 from user.models import UserFollowing
 
@@ -92,6 +95,28 @@ class UserListView(generics.ListAPIView):
 
         return queryset
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="username",
+                description="Filter users by username",
+                required=False,
+                type=OpenApiTypes.STR,
+            ),
+            OpenApiParameter(
+                name="first_name",
+                description="Filter users by first name",
+                required=False,
+                type=OpenApiTypes.STR,
+            ),
+            OpenApiParameter(
+                name="last_name",
+                description="Filter users by last name",
+                required=False,
+                type=OpenApiTypes.STR,
+            ),
+        ]
+    )
     def get(self, request, *args, **kwargs):
         """Return list of all the registered users"""
         return super().get(request, *args, **kwargs)
