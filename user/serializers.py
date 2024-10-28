@@ -1,0 +1,131 @@
+from django.contrib.auth import get_user_model
+from rest_framework import serializers
+
+from user.models import UserFollowing
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = ("id", "email", "password",)
+        extra_kwargs = {
+            "password": {
+                "write_only": True,
+                "min_length": 5,
+                "style": {
+                    "input_type": "password",
+                },
+            }
+        }
+
+    def create(self, validated_data):
+        """Create a new user with encrypted password and return it"""
+        return get_user_model().objects.create_user(**validated_data)
+
+    def update(self, instance, validated_data):
+        """Update a user, set the password correctly and return it"""
+        password = validated_data.pop("password", None)
+        user = super().update(instance, validated_data)
+        if password:
+            user.set_password(password)
+            user.save()
+
+        return user
+
+
+class UserRetrieveMyselfSerializer(UserSerializer):
+    i_follow = serializers.IntegerField(
+        source="following.count",
+        read_only=True
+    )
+    my_followers = serializers.IntegerField(
+        source="followers.count",
+        read_only=True
+    )
+
+    class Meta:
+        model = get_user_model()
+        fields = (
+            "picture",
+            "username",
+            "first_name",
+            "last_name",
+            "bio",
+            "email",
+            "i_follow",
+            "my_followers",
+            "is_staff",
+            "date_joined",
+        )
+        read_only_fields = (
+            "is_staff",
+            "date_joined",
+            "i_follow",
+            "my_followers",
+        )
+
+
+class UserListSerializer(UserSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = ("username", "first_name", "last_name",)
+
+
+class UserRetrieveSerializer(UserSerializer):
+    i_follow = serializers.IntegerField(read_only=True)
+    my_followers = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = get_user_model()
+        fields = (
+            "picture",
+            "username",
+            "first_name",
+            "last_name",
+            "bio",
+            "i_follow",
+            "my_followers",
+        )
+
+
+class UserFollowersListSerializer(serializers.ModelSerializer):
+    user = serializers.SlugRelatedField(slug_field="username", read_only=True)
+
+    class Meta:
+        model = UserFollowing
+        fields = ("user", )
+
+
+class UserFollowingListSerializer(serializers.ModelSerializer):
+    user = serializers.SlugRelatedField(
+        source="following_user",
+        slug_field="username",
+        read_only=True
+    )
+
+    class Meta:
+        model = UserFollowing
+        fields = ("user", )
+
+
+class UserFollowingSerializer(serializers.ModelSerializer):
+
+    def validate(self, attrs):
+        data = super(UserFollowingSerializer, self).validate(attrs)
+
+        user = self.context["user"]
+        following_user = self.context["following_user"]
+
+        if user == following_user:
+            raise serializers.ValidationError(
+                "user and following_user should be different"
+            )
+
+        data["user"] = user
+        data["following_user"] = following_user
+
+        return data
+
+    class Meta:
+        model = UserFollowing
+        fields = []
