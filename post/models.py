@@ -17,7 +17,7 @@ def post_file_path(instance, filename) -> os.path:
 
 
 class Post(models.Model):
-    file = models.FileField(upload_to=post_file_path)
+    file = models.FileField(upload_to=post_file_path, null=True, blank=True)
     text = models.TextField()
     hashtag = models.CharField(max_length=255)
     user = models.ForeignKey(
