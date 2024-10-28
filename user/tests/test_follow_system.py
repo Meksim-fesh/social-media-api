@@ -34,7 +34,7 @@ def create_profiles() -> None:
     ]
 
     for user_data in users_data:
-        get_user_model().objects.create(**user_data)
+        get_user_model().objects.create_user(**user_data)
 
 
 def make_one_user_follow_everyone(user_id) -> None:
@@ -69,7 +69,7 @@ class AuthenticatedUserTest(TestCase):
     def setUp(self):
         self.client = APIClient()
 
-        self.user = get_user_model().objects.create(
+        self.user = get_user_model().objects.create_user(
             email="user@test.com",
             password="password",
         )
